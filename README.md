@@ -1,7 +1,7 @@
 # BTWMapMarkers
 Adds Map Marker blocks which can be placed anywhere in the overworld to add colored markers to in game maps.
 
-Current version download: [Sledge's Map Markers Addon-1.0.0.zip](https://github.com/psychosledge/BTWMapMarkers/files/8191779/Sledge.s.Map.Markers.Addon-1.0.0.zip)
+The recipe is shapeless consisting of paper and either a stick(shaft) or any type of wood moulding.
 
 Flag colors cycle when right clicked.
 
@@ -10,5 +10,3 @@ Flag colors cycle when right clicked.
 The flag colors corespond with the markers on the map.
 
 ![image](https://user-images.githubusercontent.com/66319713/156904691-299ef99c-af9f-469c-9185-494c911eb479.png)
-
-The recipe is shapeless consisting of paper and either a stick(shaft) or any type of wood moulding.
