@@ -18,7 +18,7 @@ public class SledgesMapMarkersAddon extends FCAddOn {
     public static Map WorldMapMarkers = new LinkedHashMap<String, SMMMapMarkerData>();
 
     private SledgesMapMarkersAddon() {
-        super("Sledge Map Markers", "1.0.0", "SMM");
+        super("Sledge Map Markers", "1.1.0", "SMM");
     }
 
     @Override
@@ -39,10 +39,9 @@ public class SledgesMapMarkersAddon extends FCAddOn {
     {
         mapMarker = new SMMBlockMapMarker(id_mapMarker);
         Item.itemsList[mapMarker.blockID] = new ItemBlock(mapMarker.blockID - 256);
-
-        mapMarkerItem = (new ItemReed(id_mapMarkerItem - 256, mapMarker)).
-                SetBuoyant().SetFilterableProperties(Item.m_iFilterable_SolidBlock).
-                setUnlocalizedName("smmItemMapMarker").setCreativeTab(CreativeTabs.tabTools);
+        
+        mapMarkerItem = (new SMMItemMapMarker(id_mapMarkerItem - 256, mapMarker, "smmItemMapMarker")).
+        SetBuoyant().SetFilterableProperties(Item.m_iFilterable_SolidBlock).setCreativeTab(CreativeTabs.tabTools);
 
         AddShapelessRecipe( new ItemStack( mapMarkerItem, 1 ), new Object[] {
                 new ItemStack( FCBetterThanWolves.fcBlockWoodMouldingItemStubID, 1, FCUtilsInventory.m_iIgnoreMetadata ),

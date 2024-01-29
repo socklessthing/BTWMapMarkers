@@ -101,18 +101,69 @@ public class SMMBlockMapMarker extends BlockContainer {
     }
 
     @Override
+    public void onBlockHarvested(World world, int x, int y, int z, int meta, EntityPlayer player) {
+    	int itemID = mapMarkerItem.itemID;
+    	
+    	SMMTileEntityMapMarker tile = (SMMTileEntityMapMarker) world.getBlockTileEntity(x, y, z);
+    	
+    	if (tile != null && !player.capabilities.isCreativeMode)
+    	{
+        	ItemStack stackDropped = new ItemStack(itemID, 1, tile.GetIconIndex());
+        	
+        	dropBlockAsItem_do(world, x, y, z, stackDropped);
+    	}
+
+    }
+    
+    @Override
     public int idDropped(int metaData, Random random, int fortuneModifier)
     {
-        return mapMarkerItem.itemID;
+        return 0;
+    }
+    
+    @Override
+    public int damageDropped(int meta) {
+    	
+    	return meta;
+    	
+    }
+    
+    
+    public int getDamageValue(World world, int x, int y, int z)
+    {
+    	SMMTileEntityMapMarker tile = (SMMTileEntityMapMarker) world.getBlockTileEntity(x, y, z);
+    	
+        return this.damageDropped(tile.GetIconIndex());
+    }
+    
+    @Override
+    public boolean canBlockStay(World world, int x, int y, int z) {
+    	
+    	return canPlaceBlockAt(world, x, y, z);
     }
 
     @Override
     public void onNeighborBlockChange(World world, int x, int y, int z, int neighborBlockId) {
-        int facing = GetFacing(world, x, y, z);
-
-        if (!canPlaceBlockOnSide(world, x, y, z, Block.GetOppositeFacing(facing))) {
-            // pop the block off if it no longer has a valid anchor point
-            dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
+//        int facing = GetFacing(world, x, y, z);
+//
+//        if (!canPlaceBlockOnSide(world, x, y, z, Block.GetOppositeFacing(facing))) {
+    	
+        if (!canBlockStay(world, x, y, z)) {
+        	
+        	SMMTileEntityMapMarker tile = (SMMTileEntityMapMarker) world.getBlockTileEntity(x, y, z);
+        	
+            if (tile != null) {
+            	
+                // pop the block off if it no longer has a valid anchor point
+//                dropBlockAsItem(world, x, y, z, tile.GetIconIndex(), 0);
+            	
+            	ItemStack stackDropped = new ItemStack(mapMarkerItem.itemID, 1, tile.GetIconIndex());
+            	
+            	dropBlockAsItem_do(world, x, y, z, stackDropped);
+                
+            	
+                WorldMapMarkers.remove(tile.GetMarkerId());
+            }            
             world.setBlockWithNotify(x, y, z, 0);
         }
     }
@@ -149,20 +200,42 @@ public class SMMBlockMapMarker extends BlockContainer {
     {
         return side;
     }
-
+    
+    //ADDED
     @Override
-    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int facing, float xClick,
-                                    float yClick, float zClick)
+    public void onBlockPlacedBy(World world, int x, int y, int z, EntityLiving player, ItemStack stack)
     {
+    	int meta = world.getBlockMetadata(x, y, z);
+    	int playerRotation = ((MathHelper.floor_double((double)(player.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3) + 2) % 4; //turns playerRotation into 0 - 4
         SMMTileEntityMapMarker tile = (SMMTileEntityMapMarker) world.getBlockTileEntity(x, y, z);
-        if (tile == null) {
-            return false;
+       
+        if (tile != null) {
+        	
+        	tile.SetIconIndex(stack.getItemDamage());
+        	tile.Initialize();
+        	
+        	if (meta <= 1)
+        	{
+        		tile.setFlagRotation(Direction.directionToFacing[playerRotation]);
+        	}
+        	else tile.setFlagRotation(0);
         }
-        int iconIndex = tile.GetIconIndex();
-        //System.out.println("OnBlockActivated: " + tile.GetMarkerId() + " iconIndexBefore = " + iconIndex);
-        tile.SetIconIndex(iconIndex + 1);
-        return true;
+        
     }
+
+//    @Override
+//    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int facing, float xClick,
+//                                    float yClick, float zClick)
+//    {
+//        SMMTileEntityMapMarker tile = (SMMTileEntityMapMarker) world.getBlockTileEntity(x, y, z);
+//        if (tile == null) {
+//            return false;
+//        }
+//        int iconIndex = tile.GetIconIndex();
+//        //System.out.println("OnBlockActivated: " + tile.GetMarkerId() + " iconIndexBefore = " + iconIndex);
+//        tile.SetIconIndex(iconIndex + 1);
+//        return true;
+//    }
 
     @Override
     public boolean CanGroundCoverRestOnBlock(World world, int x, int y, int z) {
@@ -194,8 +267,7 @@ public class SMMBlockMapMarker extends BlockContainer {
     }
 
     @Override
-    public boolean shouldSideBeRendered(IBlockAccess blockAccess, int neighborX, int neighborY, int neighborZ,
-                                        int side)
+    public boolean shouldSideBeRendered(IBlockAccess blockAccess, int neighborX, int neighborY, int neighborZ, int side)
     {
         return true;
     }
@@ -207,30 +279,52 @@ public class SMMBlockMapMarker extends BlockContainer {
 
     @Override
     public AxisAlignedBB GetBlockBoundsFromPoolBasedOnState(IBlockAccess blockAccess, int x, int y, int z) {
-        int metaData = blockAccess.getBlockMetadata(x, y, z);
+    	SMMTileEntityMapMarker tile = (SMMTileEntityMapMarker) blockAccess.getBlockTileEntity(x, y, z);
+    	int metaData = blockAccess.getBlockMetadata(x, y, z);
 
         AxisAlignedBB box = shaftBox.MakeTemporaryCopy();
         box.ExpandToInclude(flagBox);
-        box = getBoxPosition(box, metaData);
+        box = getBoxPosition(box, metaData, tile);
 
         return box;
     }
 
-    private AxisAlignedBB getBoxPosition(AxisAlignedBB box, int position) {
-        box = box.MakeTemporaryCopy();
-        box.RotateAroundJToFacing(position);
+    private AxisAlignedBB getBoxPosition(AxisAlignedBB box, int position, SMMTileEntityMapMarker tile) {
+    	
+    	box = box.MakeTemporaryCopy();
+
+        if (tile != null) {
+        	
+        	if (position == 0)
+        	{
+        		int flagRotation = tile.getFlagRotation();
+        		int tempRot = flagRotation;
+        		
+        		if (flagRotation == 4) tempRot = 5;
+        		if (flagRotation == 5) tempRot = 4;
+        		
+        		box.RotateAroundJToFacing(tempRot);
+        	}
+        	else if (position == 1)
+        	{
+        		box.RotateAroundJToFacing(tile.getFlagRotation());
+        	}
+        	else box.RotateAroundJToFacing(position);
+		}
+        
         box.TiltToFacingAlongJ(position);
+        
         return box;
     }
 
     @Override
     public boolean RenderBlock(RenderBlocks renderer, int x, int y, int z) {
-        int metaData = renderer.blockAccess.getBlockMetadata(x, y, z);
+    	SMMTileEntityMapMarker tileEntity = (SMMTileEntityMapMarker) renderer.blockAccess.getBlockTileEntity(x, y, z);
+    	int metaData = renderer.blockAccess.getBlockMetadata(x, y, z);
 
-        AxisAlignedBB shaft = getBoxPosition(shaftBox, metaData);
-        AxisAlignedBB flag = getBoxPosition(flagBox, metaData);
+        AxisAlignedBB shaft = getBoxPosition(shaftBox, metaData, tileEntity);
+        AxisAlignedBB flag = getBoxPosition(flagBox, metaData, tileEntity);
 
-        SMMTileEntityMapMarker tileEntity = (SMMTileEntityMapMarker) renderer.blockAccess.getBlockTileEntity(x, y, z);
         int iconFileIndex = 0;
         if (tileEntity != null) {
             iconFileIndex = tileEntity.GetIconFileIndex();

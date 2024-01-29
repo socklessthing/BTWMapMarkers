@@ -7,12 +7,14 @@ import static net.minecraft.src.SledgesMapMarkersAddon.mapMarker;
 
 public class SMMTileEntityMapMarker extends TileEntity implements FCITileEntityDataPacketHandler {
     private int _iconIndex = 4;
+    private int rotation = 0;
 
     @Override
     public void writeToNBT(NBTTagCompound nbtTag)
     {
         super.writeToNBT(nbtTag);
         nbtTag.setInteger("icon", this._iconIndex);
+        nbtTag.setInteger("rotation", this.rotation);
         //System.out.println("Tile saved: markerId = " + this.GetMarkerId() + ", iconIndex = " + this._iconIndex);
     }
 
@@ -25,6 +27,12 @@ public class SMMTileEntityMapMarker extends TileEntity implements FCITileEntityD
             //System.out.println("Tile loaded: markerId = " + this.GetMarkerId() + ", iconIndex = " + this._iconIndex);
             this._iconIndex = nbtTag.getInteger("icon");
         }
+        
+        if (nbtTag.hasKey("rotation"))
+        {
+        	this.rotation = nbtTag.getInteger("rotation");
+        }
+        
         //else {
             //System.out.println("Tile loaded: markerId = " + this.GetMarkerId() + ", iconIndex = null");
         //}
@@ -34,6 +42,7 @@ public class SMMTileEntityMapMarker extends TileEntity implements FCITileEntityD
     public Packet getDescriptionPacket() {
         NBTTagCompound nbtTag = new NBTTagCompound();
         nbtTag.setInteger("icon", this._iconIndex);
+        nbtTag.setInteger("rotation", this.rotation);
         return new Packet132TileEntityData(this.xCoord, this.yCoord, this.zCoord, 1, nbtTag);
     }
 
@@ -43,9 +52,15 @@ public class SMMTileEntityMapMarker extends TileEntity implements FCITileEntityD
             //System.out.println("Tile packet loaded: markerId = " + this.GetMarkerId() + ", iconIndex = " + this._iconIndex);
             this._iconIndex = nbtTag.getInteger("icon");
         }
-        else {
-            //System.out.println("Tile packet loaded: markerId = " + this.GetMarkerId() + ", iconIndex = null");
+        
+        if (nbtTag.hasKey("rotation"))
+        {
+        	this.rotation = nbtTag.getInteger("rotation");
         }
+        
+//        else {
+            //System.out.println("Tile packet loaded: markerId = " + this.GetMarkerId() + ", iconIndex = null");
+//        }
         this.worldObj.markBlockForRenderUpdate(this.xCoord, this.yCoord, this.zCoord);
     }
 
@@ -86,7 +101,16 @@ public class SMMTileEntityMapMarker extends TileEntity implements FCITileEntityD
     public int GetIconIndex() {
         return this._iconIndex;
     }
+    
+    public void setFlagRotation (int rotation)
+    {
+    	this.rotation = rotation;
+    }
 
+    public int getFlagRotation() {
+		return this.rotation;
+	}
+    
     public void SetIconIndex(int iconIndex) {
         // skip 6 (default "off map" icon)
         if (iconIndex == 6) iconIndex = 7;
