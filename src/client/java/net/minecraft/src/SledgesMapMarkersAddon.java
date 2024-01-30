@@ -26,11 +26,12 @@ public class SledgesMapMarkersAddon extends FCAddOn {
         FCAddOnHandler.LogMessage(this.getName() + " Version " + this.getVersionString() + " Initializing...");
 
         AddDefinitions();
+        AddRecipes();
 
         FCAddOnHandler.LogMessage(this.getName() + " Initialized");
     }
 
-    @Override
+	@Override
     public FCAddOnUtilsWorldData createWorldData() {
         return new SMMUtilsWorldData();
     }
@@ -43,7 +44,35 @@ public class SledgesMapMarkersAddon extends FCAddOn {
         mapMarkerItem = (new SMMItemMapMarker(id_mapMarkerItem - 256, mapMarker, "smmItemMapMarker")).
         SetBuoyant().SetFilterableProperties(Item.m_iFilterable_SolidBlock).setCreativeTab(CreativeTabs.tabTools);
 
-        AddShapelessRecipe( new ItemStack( mapMarkerItem, 1 ), new Object[] {
+        TileEntity.addMapping(SMMTileEntityMapMarker.class, "SMMMapMarker");
+    }
+
+    private void AddRecipes() {
+    	
+    	int[] dyes = {
+    			15, //white			
+    			10, //lime green
+    			1, //red
+    			4, //blue    			
+    			8, //gray
+    			11, //yellow
+    			14, //orange
+    			5, //purple
+    	};
+    	
+    	int[] markers = {
+    			0,
+    			5,
+    			7,
+    			8,
+    			12,
+    			13,
+    			14,
+    			15    			
+    	};
+    	
+    	//Default, aka white marker
+    	AddShapelessRecipe( new ItemStack( mapMarkerItem, 1 ), new Object[] {
                 new ItemStack( FCBetterThanWolves.fcBlockWoodMouldingItemStubID, 1, FCUtilsInventory.m_iIgnoreMetadata ),
                 new ItemStack( Item.paper )
         } );
@@ -53,6 +82,12 @@ public class SledgesMapMarkersAddon extends FCAddOn {
                 new ItemStack( Item.paper )
         } );
 
-        TileEntity.addMapping(SMMTileEntityMapMarker.class, "SMMMapMarker");
-    }
+    	//dying any marker with dyes
+        for (int i = 0; i < markers.length; i++) {	    	
+            AddShapelessRecipe( new ItemStack( mapMarkerItem, 1, markers[i] ), new Object[] {
+            		new ItemStack( mapMarkerItem, 1, FCUtilsInventory.m_iIgnoreMetadata ),
+                    new ItemStack( Item.dyePowder, 1, dyes[i] )
+            } );
+    	}
+	}
 }
